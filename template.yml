@@ -141,7 +141,6 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: build/cmd/onconnect
-      Runtime: nodejs12.x
       Environment:
         Variables:
           CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
@@ -213,9 +212,24 @@ Resources:
           CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
           STACK_NAME: !Ref StackName
           WEB_SOCKET_URI_KEY: WebSocketURI
+      Events:
+        SendMessageEvent:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt IoTKinesisStream.Arn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumBatchingWindowInSeconds: 30
+            Enabled: true
+            ParallelizationFactor: 1
+            MaximumRetryAttempts: 0
+            BisectBatchOnFunctionError: false
+            MaximumRecordAgeInSeconds: 60
       Policies:
       - DynamoDBCrudPolicy:
           TableName: !Sub ${ProjectName}-${ConnectionTableName}
+      - KinesisStreamReadPolicy:
+          StreamName: !GetAtt IoTKinesisStream.Arn
       - Statement:
         - Effect: Allow
           Action:
@@ -230,7 +244,12 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref IotMessageFunction
-      Principal: apigateway.amazonaws.com
+      Principal: kinesis.amazonaws.com
+
+  IoTKinesisStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      ShardCount: 1
 
 Outputs:
   ConnectionsTableArn:

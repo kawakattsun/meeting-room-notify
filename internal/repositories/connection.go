@@ -32,6 +32,5 @@ func PutConnection(connectionID string) error {
 
 // DeleteConnection dynamodb get all connections
 func DeleteConnection(connectionID string) error {
-	item := ConnectionItem{ConnectionID: connectionID}
-	return dynamodb.Delete(connectionTable, "connectionId", item)
+	return dynamodb.Delete(connectionTable, "connectionId", connectionID)
 }
