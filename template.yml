@@ -203,7 +203,7 @@ Resources:
       FunctionName: !Ref SendMessageFunction
       Principal: apigateway.amazonaws.com
 
-  IotMessageFunction:
+  IoTMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: build/cmd/iotmessage
@@ -236,14 +236,14 @@ Resources:
           - 'execute-api:ManageConnections'
           Resource:
           - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiGateway}/*'
-  IotMessagePermission:
+  IoTMessagePermission:
     Type: AWS::Lambda::Permission
     DependsOn:
       - WebSocketApiGateway
-      - IotMessageFunction
+      - IoTMessageFunction
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !Ref IotMessageFunction
+      FunctionName: !Ref IoTMessageFunction
       Principal: kinesis.amazonaws.com
 
   IoTKinesisStream:
@@ -268,10 +268,14 @@ Outputs:
     Description: "SendMessage function ARN"
     Value: !GetAtt SendMessageFunction.Arn
 
-  IotMessageFunctionArn:
-    Description: "IotMessage function ARN"
-    Value: !GetAtt IotMessageFunction.Arn
+  IoTMessageFunctionArn:
+    Description: "IoTMessage function ARN"
+    Value: !GetAtt IoTMessageFunction.Arn
 
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
     Value: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]
+
+  IoTKinesisStreamArn:
+    Description: "IoT KinesisStream ARN"
+    Value: !GetAtt IoTKinesisStream.Arn
