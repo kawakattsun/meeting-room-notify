@@ -1,0 +1,17 @@
+MAKE_GO := $(MAKE) -f Makefile_go
+
+all:
+	$(MAKE_GO) build
+
+lint:
+	sh scripts/go-lint.sh
+
+clean: 
+	rm -rf build/deploy/cmd/*
+
+.PHONY: build
+build: lint clean
+	sh scripts/build-handllers.sh
+
+test:
+	go test -v $(TEST_TARGET)

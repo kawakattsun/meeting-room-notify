@@ -1,0 +1,14 @@
+.DS_Store
+.vscode
+.env
+vendor
+main
+
+build/deploy/packaged.yml
+build/deploy/openapi.yml
+build/deploy/cmd/*
+
+!build/deploy/cmd/convertsvg2pdf/
+!build/deploy/cmd/convertsvg2pdf/.fonts.conf
+
+!.gitkeep

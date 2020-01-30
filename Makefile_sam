@@ -1,0 +1,26 @@
+MAKE_SAM := $(MAKE) -f Makefile_sam
+
+FUNCTION_NAME ?= OnConnectFunction
+
+all:
+	$(MAKE_SAM) describe-stack
+
+validate: template.yml
+	sam validate --template $<
+
+.PHONY: deploy
+deploy: template.yml
+	sam deploy \
+		--capabilities CAPABILITY_IAM \
+		--no-fail-on-empty-changeset \
+
+log:
+	sam logs \
+		--name $(FUNCTION_NAME) \
+		--stack-name $(STACK_NAME) \
+		--tail
+
+describe-stack:
+	aws cloudformation describe-stacks \
+		--stack-name $(STACK_NAME) \
+		--query 'Stacks[].Outputs'
