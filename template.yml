@@ -141,7 +141,7 @@ Resources:
       Runtime: nodejs12.x
       Environment:
         Variables:
-          TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
       Policies:
       - DynamoDBCrudPolicy:
           TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
@@ -161,7 +161,7 @@ Resources:
       CodeUri: cmd/ondisconnect/
       Environment:
         Variables:
-          TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
       Policies:
       - DynamoDBCrudPolicy:
           TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
@@ -181,7 +181,8 @@ Resources:
       CodeUri: cmd/sendmessage/
       Environment:
         Variables:
-          TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          WS_ENDPOINT: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]
       Policies:
       - DynamoDBCrudPolicy:
           TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
@@ -207,7 +208,8 @@ Resources:
       CodeUri: cmd/iotmessage/
       Environment:
         Variables:
-          TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          WS_ENDPOINT: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]
       Policies:
       - DynamoDBCrudPolicy:
           TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
@@ -250,4 +252,4 @@ Outputs:
 
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
-    Value: !Join [ '', [ 'wss://', !Ref WebSocketApiGateway, '.execute-api.',!Ref 'AWS::Region','.amazonaws.com/',!Ref 'Stage'] ]
+    Value: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]

@@ -4,11 +4,11 @@
 vendor
 main
 
-build/deploy/packaged.yml
-build/deploy/openapi.yml
-build/deploy/cmd/*
+build/packaged.yml
+build/openapi.yml
+build/cmd/*
 
-!build/deploy/cmd/convertsvg2pdf/
-!build/deploy/cmd/convertsvg2pdf/.fonts.conf
+!build/cmd/convertsvg2pdf/
+!build/cmd/convertsvg2pdf/.fonts.conf
 
 !.gitkeep

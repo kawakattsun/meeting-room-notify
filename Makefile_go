@@ -7,7 +7,7 @@ lint:
 	sh scripts/go-lint.sh
 
 clean: 
-	rm -rf build/deploy/cmd/*
+	rm -rf build/cmd/*
 
 .PHONY: build
 build: lint clean

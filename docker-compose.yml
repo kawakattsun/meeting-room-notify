@@ -3,7 +3,7 @@ services:
   go:
     build:
       context: ./
-      dockerfile: ./build/docker/go/Dockerfile
+      dockerfile: ./docker/go/Dockerfile
     environment:
       OWNER_NAME: ${OWNER_NAME}
       PROJECT_NAME: ${PROJECT_NAME_GO}
@@ -15,7 +15,7 @@ services:
 
   sam:
     build:
-      context: ./build/docker/sam
+      context: ./docker/sam
     volumes:
       - .:/opt/sam
     working_dir: /opt/sam

@@ -1,4 +1,4 @@
-package dynamodbservice
+package dynamodb
 
 import (
 	"os"
@@ -16,4 +16,9 @@ func Connect() {
 		Region: aws.String(os.Getenv("AWS_REGION")),
 	}
 	db = dynamo.New(session.New(), config)
+}
+
+// Put dynamoDB put.
+func Put(tableName string, item interface{}) error {
+	return db.Table(tableName).Put(item).Run()
 }
