@@ -12,22 +12,26 @@ func init() {
 	connectionTable = os.Getenv("CONNECTION_TABLE_NAME")
 }
 
-type connectionItem struct {
+// ConnectionItem dynamo struct.
+type ConnectionItem struct {
 	ConnectionID string `dynamo:"connectionId,hash"`
 }
 
 // GetAllConnection dynamodb get all connections
-func GetAllConnection() ([]string, error) {
-	return nil, nil
+func GetAllConnection() ([]*ConnectionItem, error) {
+	var items []*ConnectionItem
+	err := dynamodb.ScanAll(connectionTable, &items)
+	return items, err
 }
 
 // PutConnection dynamodb put to connections
 func PutConnection(connectionID string) error {
-	item := connectionItem{ConnectionID: connectionID}
+	item := ConnectionItem{ConnectionID: connectionID}
 	return dynamodb.Put(connectionTable, item)
 }
 
 // DeleteConnection dynamodb get all connections
 func DeleteConnection(connectionID string) error {
-	return nil
+	item := ConnectionItem{ConnectionID: connectionID}
+	return dynamodb.Delete(connectionTable, "connectionId", item)
 }

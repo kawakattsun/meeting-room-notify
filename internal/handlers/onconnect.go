@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/kawakattsun/meeting-room-notify/internal/repositories"
 	"github.com/kawakattsun/meeting-room-notify/pkg/responder"
 )

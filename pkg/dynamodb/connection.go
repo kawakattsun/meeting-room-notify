@@ -18,7 +18,17 @@ func Connect() {
 	db = dynamo.New(session.New(), config)
 }
 
+// ScanAll dynamoDB Scan.
+func ScanAll(tableName string, items interface{}) error {
+	return db.Table(tableName).Scan().All(items)
+}
+
 // Put dynamoDB put.
 func Put(tableName string, item interface{}) error {
 	return db.Table(tableName).Put(item).Run()
+}
+
+// Delete dynamoDB delete.
+func Delete(tableName string, name string, item interface{}) error {
+	return db.Table(tableName).Delete(name, item).Run()
 }
