@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"os"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -9,13 +10,16 @@ import (
 )
 
 var db *dynamo.DB
+var once sync.Once
 
 // Connect connect dynamoDB.
 func Connect() {
-	config := &aws.Config{
-		Region: aws.String(os.Getenv("AWS_REGION")),
-	}
-	db = dynamo.New(session.New(), config)
+	once.Do(func() {
+		config := &aws.Config{
+			Region: aws.String(os.Getenv("AWS_REGION")),
+		}
+		db = dynamo.New(session.New(), config)
+	})
 }
 
 // ScanAll dynamoDB Scan.

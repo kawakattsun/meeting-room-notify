@@ -9,6 +9,9 @@ Parameters:
   ProjectName:
     Type: String
     Default: meeting-room-notify
+  StackName:
+    Type: String
+    Default: meeting-room-notify-stack
   StageName:
     Type: String
     Default: dev
@@ -112,7 +115,7 @@ Resources:
     Type: AWS::ApiGatewayV2::Stage
     Properties:
       StageName: !Ref StageName
-      Description: !Ref ${StageName} Stage
+      Description: !Sub ${StageName} Stage
       DeploymentId: !Ref Deployment
       ApiId: !Ref WebSocketApiGateway
 
@@ -131,20 +134,20 @@ Resources:
         WriteCapacityUnits: 1
       SSESpecification:
         SSEEnabled: True
-      TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
+      TableName: !Sub ${ProjectName}-${ConnectionTableName}
 
   # Lambda function
   OnConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: cmd/onconnect/
+      CodeUri: build/cmd/onconnect
       Runtime: nodejs12.x
       Environment:
         Variables:
-          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
+          TableName: !Sub ${ProjectName}-${ConnectionTableName}
   OnConnectPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -158,13 +161,13 @@ Resources:
   OnDisconnectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: cmd/ondisconnect/
+      CodeUri: build/cmd/ondisconnect
       Environment:
         Variables:
-          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
+          CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
+          TableName: !Sub ${ProjectName}-${ConnectionTableName}
   OnDisconnectPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -178,14 +181,13 @@ Resources:
   SendMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: cmd/sendmessage/
+      CodeUri: build/cmd/sendmessage
       Environment:
         Variables:
-          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
-          WS_ENDPOINT: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]
+          CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
+          TableName: !Sub ${ProjectName}-${ConnectionTableName}
       - Statement:
         - Effect: Allow
           Action:
@@ -205,14 +207,15 @@ Resources:
   IotMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: cmd/iotmessage/
+      CodeUri: build/cmd/iotmessage
       Environment:
         Variables:
-          CONNECTION_TABLE_NAME: !Ref ${ProjectNmame}-${ConnectionTableName}
-          WS_ENDPOINT: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]
+          CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
+          STACK_NAME: !Ref StackName
+          WEB_SOCKET_URI_KEY: WebSocketURI
       Policies:
       - DynamoDBCrudPolicy:
-          TableName: !Ref ${ProjectNmame}-${ConnectionTableName}
+          TableName: !Sub ${ProjectName}-${ConnectionTableName}
       - Statement:
         - Effect: Allow
           Action:

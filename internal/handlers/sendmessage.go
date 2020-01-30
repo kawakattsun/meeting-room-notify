@@ -36,7 +36,7 @@ func SendMessage(request events.APIGatewayWebsocketProxyRequest) (events.APIGate
 	}
 
 	svc := apigatewaymanagementapi.New(newSession)
-	svc.Endpoint = os.Getenv("WS_ENDPOINT")
+	svc.Endpoint = fmt.Sprintf("https://%s/%s", request.RequestContext.DomainName, request.RequestContext.Stage)
 
 	connections, err := repositories.GetAllConnection()
 	if err != nil {

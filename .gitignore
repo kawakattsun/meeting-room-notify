@@ -4,11 +4,8 @@
 vendor
 main
 
-build/packaged.yml
-build/openapi.yml
-build/cmd/*
+samconfig.toml
 
-!build/cmd/convertsvg2pdf/
-!build/cmd/convertsvg2pdf/.fonts.conf
+build/cmd/*
 
 !.gitkeep

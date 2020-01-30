@@ -3,7 +3,7 @@ DOCKER_SERVICE_SAM ?= sam
 DOCKER_COMPOSE_RUN = docker-compose run --rm
 
 FUNCTION_NAME ?= OnConnectFunction
-STAGE ?= dev
+STACK_NAME ?= meeting-room-notify-stack
 TEST_TARGET ?= ./...
 
 all:
@@ -34,6 +34,10 @@ SAM_COMMAND := deploy \
 .PHONY: deploy
 $(SAM_COMMAND):
 	$(DOCKER_COMPOSE_RUN) $(DOCKER_SERVICE_SAM) make -f Makefile_sam $@
+
+deploy-guided:
+	$(DOCKER_COMPOSE_RUN) $(DOCKER_SERVICE_SAM) make -f Makefile_sam $@ \
+		GUIDED=--guided
 
 log:
 	$(DOCKER_COMPOSE_RUN) $(DOCKER_SERVICE_SAM) make -f Makefile_sam $@ \

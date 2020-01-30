@@ -1,6 +1,8 @@
 MAKE_SAM := $(MAKE) -f Makefile_sam
 
 FUNCTION_NAME ?= OnConnectFunction
+STACK_NAME ?= meeting-room-notify-stack
+GUIDED ?=
 
 all:
 	$(MAKE_SAM) describe-stack
@@ -10,9 +12,7 @@ validate: template.yml
 
 .PHONY: deploy
 deploy: template.yml
-	sam deploy \
-		--capabilities CAPABILITY_IAM \
-		--no-fail-on-empty-changeset \
+	sam deploy $(GUIDED)
 
 log:
 	sam logs \

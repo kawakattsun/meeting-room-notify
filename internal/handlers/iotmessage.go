@@ -17,6 +17,12 @@ const (
 	sensorOff = "off"
 )
 
+var webSocketURI string
+
+func SetIoTMessageWebSocketURI(uri string) {
+	webSocketURI = uri
+}
+
 type iotMessageBody struct {
 	Sensor string `json:"sensor"`
 }
@@ -56,7 +62,7 @@ func sendMessage(msg string) error {
 	}
 
 	svc := apigatewaymanagementapi.New(newSession)
-	svc.Endpoint = os.Getenv("WS_ENDPOINT")
+	svc.Endpoint = webSocketURI
 
 	connections, err := repositories.GetAllConnection()
 	if err != nil {
