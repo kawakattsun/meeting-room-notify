@@ -213,7 +213,7 @@ Resources:
           STACK_NAME: !Ref StackName
           WEB_SOCKET_URI_KEY: WebSocketURI
       Events:
-        SendMessageEvent:
+        IoTMessageEvent:
           Type: Kinesis
           Properties:
             Stream: !GetAtt IoTKinesisStream.Arn
@@ -226,6 +226,7 @@ Resources:
             BisectBatchOnFunctionError: false
             MaximumRecordAgeInSeconds: 60
       Policies:
+      - CloudFormationDescribeStacksPolicy: {}
       - DynamoDBCrudPolicy:
           TableName: !Sub ${ProjectName}-${ConnectionTableName}
       - KinesisStreamReadPolicy:

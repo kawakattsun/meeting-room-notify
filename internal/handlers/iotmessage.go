@@ -24,6 +24,14 @@ func SetIoTMessageWebSocketURI(uri string) {
 }
 
 type iotMessageBody struct {
+	State State `json:"state"`
+}
+
+type State struct {
+	Reported Reported `json:"reported"`
+}
+
+type Reported struct {
 	Sensor string `json:"sensor"`
 }
 
@@ -32,13 +40,13 @@ func IoTMessage(event events.KinesisEvent) error {
 	msg := sensorOff
 	for _, r := range event.Records {
 		fmt.Printf("Kinesis SequenceNumber: %+v\n", r.Kinesis.SequenceNumber)
-		fmt.Printf("Kinesis Data: %+v\n", r.Kinesis.Data)
+		fmt.Printf("Kinesis Data: %s\n", string(r.Kinesis.Data))
 		body := new(iotMessageBody)
 		if err := json.Unmarshal(r.Kinesis.Data, body); err != nil {
 			fmt.Print("error: Umnmarshal Kinesis Data\n")
 			continue
 		}
-		if body.Sensor == sensorOn {
+		if body.State.Reported.Sensor == sensorOn {
 			msg = sensorOn
 			break
 		}
@@ -58,7 +66,7 @@ func sendMessage(msg string) error {
 	newSession, err := session.NewSession(config)
 	if err != nil {
 		fmt.Print("error: New aws session.\n")
-		return nil
+		return err
 	}
 
 	svc := apigatewaymanagementapi.New(newSession)
@@ -67,15 +75,18 @@ func sendMessage(msg string) error {
 	connections, err := repositories.GetAllConnection()
 	if err != nil {
 		fmt.Print("error: DynamoDB GetAllConnection.\n")
-		return nil
+		return err
 	}
 
 	for _, connection := range connections {
 		connectionID := connection.ConnectionID
-		svc.PostToConnection(&apigatewaymanagementapi.PostToConnectionInput{
+		_, err := svc.PostToConnection(&apigatewaymanagementapi.PostToConnectionInput{
 			ConnectionId: &connectionID,
 			Data:         []byte(msg),
 		})
+		if err != nil {
+			fmt.Printf("error: PostToConnection. %+v\n", err)
+		}
 	}
 
 	return nil
