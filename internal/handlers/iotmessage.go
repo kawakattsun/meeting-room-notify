@@ -82,7 +82,7 @@ func sendMessage(msg string) error {
 		connectionID := connection.ConnectionID
 		_, err := svc.PostToConnection(&apigatewaymanagementapi.PostToConnectionInput{
 			ConnectionId: &connectionID,
-			Data:         []byte(fmt.Sprintf(`"message": "%s"}`, msg)),
+			Data:         []byte(fmt.Sprintf(`{"message": "%s"}`, msg)),
 		})
 		if err != nil {
 			fmt.Printf("error: PostToConnection. %+v\n", err)

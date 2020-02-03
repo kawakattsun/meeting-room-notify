@@ -48,7 +48,7 @@ func SendMessage(request events.APIGatewayWebsocketProxyRequest) (events.APIGate
 		connectionID := connection.ConnectionID
 		svc.PostToConnection(&apigatewaymanagementapi.PostToConnectionInput{
 			ConnectionId: &connectionID,
-			Data:         []byte(fmt.Sprintf(`"message": "%s"}`, body.Data)),
+			Data:         []byte(fmt.Sprintf(`{"message": "%s"}`, body.Data)),
 		})
 	}
 
