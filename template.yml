@@ -212,16 +212,27 @@ Resources:
           CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
           STACK_NAME: !Ref StackName
           WEB_SOCKET_URI_KEY: WebSocketURI
+          IOT_MESSAGE_TABLE_NAME: ${ProjectName}-iot-message
       Events:
         IoTMessageEvent:
-          Type: Kinesis
+          # Type: Kinesis
+          # Properties:
+          #   Stream: !GetAtt IoTKinesisStream.Arn
+          #   StartingPosition: LATEST
+          #   BatchSize: 100
+          #   MaximumBatchingWindowInSeconds: 30
+          #   Enabled: true
+          #   ParallelizationFactor: 1
+          #   MaximumRetryAttempts: 0
+          #   BisectBatchOnFunctionError: false
+          #   MaximumRecordAgeInSeconds: 60
+          Type: DynamoDB
           Properties:
-            Stream: !GetAtt IoTKinesisStream.Arn
+            Stream: !GetAtt IoTMessageTable.StreamArn
             StartingPosition: LATEST
-            BatchSize: 100
+            BatchSize: 60
             MaximumBatchingWindowInSeconds: 30
             Enabled: true
-            ParallelizationFactor: 1
             MaximumRetryAttempts: 0
             BisectBatchOnFunctionError: false
             MaximumRecordAgeInSeconds: 60
@@ -229,8 +240,8 @@ Resources:
       - CloudFormationDescribeStacksPolicy: {}
       - DynamoDBCrudPolicy:
           TableName: !Sub ${ProjectName}-${ConnectionTableName}
-      - KinesisStreamReadPolicy:
-          StreamName: !GetAtt IoTKinesisStream.Arn
+      # - KinesisStreamReadPolicy:
+      #     StreamName: !GetAtt IoTKinesisStream.Arn
       - Statement:
         - Effect: Allow
           Action:
@@ -247,10 +258,26 @@ Resources:
       FunctionName: !Ref IoTMessageFunction
       Principal: kinesis.amazonaws.com
 
-  IoTKinesisStream:
-    Type: AWS::Kinesis::Stream
+  # IoTKinesisStream:
+  #   Type: AWS::Kinesis::Stream
+  #   Properties:
+  #     ShardCount: 1
+
+  IoTMessageTable:
+    Type: AWS::DynamoDB::Table
     Properties:
-      ShardCount: 1
+      TableName: !Sub ${ProjectName}-iot-message
+      AttributeDefinitions: 
+      - AttributeName: detected_at
+        AttributeType: S
+      KeySchema:
+      - AttributeName: detected_at
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      StreamSpecification: 
+        StreamViewType: NEW_IMAGE
 
 Outputs:
   ConnectionsTableArn:
@@ -273,10 +300,14 @@ Outputs:
     Description: "IoTMessage function ARN"
     Value: !GetAtt IoTMessageFunction.Arn
 
+  IoTMessageTableArn:
+    Description: "IoTMessage table ARN"
+    Value: !GetAtt IoTMessageTable.Arn
+
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
     Value: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]
 
-  IoTKinesisStreamArn:
-    Description: "IoT KinesisStream ARN"
-    Value: !GetAtt IoTKinesisStream.Arn
+  # IoTKinesisStreamArn:
+  #   Description: "IoT KinesisStream ARN"
+  #   Value: !GetAtt IoTKinesisStream.Arn

@@ -23,8 +23,10 @@ func init() {
 	if err != nil {
 		fmt.Printf("error: Cloudformation DescribeStacks. %+v", err)
 	}
-	webSocketURIKey := os.Getenv("WEB_SOCKET_URI_KEY")
 
+	handlers.SetIoTMessageTableName(os.Getenv("IOT_MESSAGE_TABLE_NAME"))
+
+	webSocketURIKey := os.Getenv("WEB_SOCKET_URI_KEY")
 EXISTS:
 	for _, s := range out.Stacks {
 		for _, o := range s.Outputs {

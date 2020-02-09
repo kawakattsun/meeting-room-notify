@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -10,45 +9,54 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/apigatewaymanagementapi"
 	"github.com/kawakattsun/meeting-room-notify/internal/repositories"
+	"github.com/kawakattsun/meeting-room-notify/pkg/dynamodb"
 )
 
 const (
-	sensorOn  = "on"
-	sensorOff = "off"
+	sensorKey     = "sensor"
+	detectedAtKey = "detected_at"
+	sensorOn      = "on"
+	sensorOff     = "off"
 )
 
 var webSocketURI string
 
+// SetIoTMessageWebSocketURI set IoT message web socket uri.
 func SetIoTMessageWebSocketURI(uri string) {
 	webSocketURI = uri
 }
 
-type iotMessageBody struct {
-	State State `json:"state"`
-}
+var iotMessageTableName string
 
-type State struct {
-	Reported Reported `json:"reported"`
-}
-
-type Reported struct {
-	Sensor string `json:"sensor"`
+// SetIoTMessageTableName set IoT message table name.
+func SetIoTMessageTableName(name string) {
+	iotMessageTableName = name
 }
 
 // IoTMessage Lambda handler function.
-func IoTMessage(event events.KinesisEvent) error {
+func IoTMessage(event events.DynamoDBEvent) error {
 	msg := sensorOff
 	for _, r := range event.Records {
-		fmt.Printf("Kinesis SequenceNumber: %+v\n", r.Kinesis.SequenceNumber)
-		fmt.Printf("Kinesis Data: %s\n", string(r.Kinesis.Data))
-		body := new(iotMessageBody)
-		if err := json.Unmarshal(r.Kinesis.Data, body); err != nil {
-			fmt.Print("error: Umnmarshal Kinesis Data\n")
-			continue
-		}
-		if body.State.Reported.Sensor == sensorOn {
-			msg = sensorOn
-			break
+		fmt.Printf("eventID: %s, eventName: %s, eventSourceARN: %s\n",
+			r.EventID,
+			r.EventName,
+			r.EventSourceArn,
+		)
+		switch r.EventName {
+		case "INSERT":
+			fmt.Print("Event execute.\n")
+			item := r.Change.NewImage
+			if v, ok := item[detectedAtKey]; ok {
+				dynamodb.Delete(iotMessageTableName, detectedAtKey, v.String())
+			}
+			if v, ok := item[sensorKey]; ok {
+				if v.String() == sensorOn {
+					msg = sensorOn
+					break
+				}
+			}
+		default:
+			fmt.Print("Not executable event.\n")
 		}
 	}
 
