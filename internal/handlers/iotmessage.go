@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -33,9 +34,15 @@ func SetIoTMessageTableName(name string) {
 	iotMessageTableName = name
 }
 
+type sensorBody struct {
+	DetectedAt string `json:"detected_at"`
+	Sensor     string `json:"sensor"`
+}
+
 // IoTMessage Lambda handler function.
 func IoTMessage(event events.DynamoDBEvent) error {
 	msg := sensorOff
+EXISTS:
 	for _, r := range event.Records {
 		fmt.Printf("eventID: %s, eventName: %s, eventSourceARN: %s\n",
 			r.EventID,
@@ -50,9 +57,14 @@ func IoTMessage(event events.DynamoDBEvent) error {
 				dynamodb.Delete(iotMessageTableName, detectedAtKey, v.String())
 			}
 			if v, ok := item[sensorKey]; ok {
-				if v.String() == sensorOn {
+				body := new(sensorBody)
+				if err := json.Unmarshal([]byte(v.String()), body); err != nil {
+					fmt.Printf("error: Umnmarshal sensor body. body: %+v\n", body)
+					continue
+				}
+				if body.Sensor == sensorOn {
 					msg = sensorOn
-					break
+					break EXISTS
 				}
 			}
 		default:
