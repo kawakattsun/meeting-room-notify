@@ -212,7 +212,7 @@ Resources:
           CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
           STACK_NAME: !Ref StackName
           WEB_SOCKET_URI_KEY: WebSocketURI
-          IOT_MESSAGE_TABLE_NAME: ${ProjectName}-iot-message
+          IOT_MESSAGE_TABLE_NAME: !Sub ${ProjectName}-iot-message
       Events:
         IoTMessageEvent:
           # Type: Kinesis
@@ -240,6 +240,8 @@ Resources:
       - CloudFormationDescribeStacksPolicy: {}
       - DynamoDBCrudPolicy:
           TableName: !Sub ${ProjectName}-${ConnectionTableName}
+      - DynamoDBCrudPolicy:
+          TableName: !Sub ${ProjectName}-iot-message
       # - KinesisStreamReadPolicy:
       #     StreamName: !GetAtt IoTKinesisStream.Arn
       - Statement:

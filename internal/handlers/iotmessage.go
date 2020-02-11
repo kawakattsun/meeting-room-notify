@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -34,14 +33,10 @@ func SetIoTMessageTableName(name string) {
 	iotMessageTableName = name
 }
 
-type sensorBody struct {
-	DetectedAt string `json:"detected_at"`
-	Sensor     string `json:"sensor"`
-}
-
 // IoTMessage Lambda handler function.
 func IoTMessage(event events.DynamoDBEvent) error {
 	msg := sensorOff
+	doSendMessage := false
 EXISTS:
 	for _, r := range event.Records {
 		fmt.Printf("eventID: %s, eventName: %s, eventSourceARN: %s\n",
@@ -52,17 +47,21 @@ EXISTS:
 		switch r.EventName {
 		case "INSERT":
 			fmt.Print("Event execute.\n")
+			doSendMessage = true
 			item := r.Change.NewImage
+			fmt.Printf("item: %+v\n", item)
 			if v, ok := item[detectedAtKey]; ok {
-				dynamodb.Delete(iotMessageTableName, detectedAtKey, v.String())
+				fmt.Printf("delete dynamodb record. table: %s, detected_at: %s\n", iotMessageTableName, v.String())
+				if err := dynamodb.Delete(iotMessageTableName, detectedAtKey, v.String()); err != nil {
+					fmt.Printf("error: delete dynamodb record. %+v\n", err)
+				}
+
 			}
 			if v, ok := item[sensorKey]; ok {
-				body := new(sensorBody)
-				if err := json.Unmarshal([]byte(v.String()), body); err != nil {
-					fmt.Printf("error: Umnmarshal sensor body. body: %+v\n", body)
-					continue
-				}
-				if body.Sensor == sensorOn {
+				sensor := v.Map()
+				fmt.Printf("sensor: %+v\n", sensor["sensor"].String())
+				if sensor["sensor"].String() == sensorOn {
+					fmt.Print("Detected sensor.\n")
 					msg = sensorOn
 					break EXISTS
 				}
@@ -72,8 +71,10 @@ EXISTS:
 		}
 	}
 
-	if err := sendMessage(msg); err != nil {
-		fmt.Printf("error: sendMessage %s. %+v\n", msg, err)
+	if doSendMessage {
+		if err := sendMessage(msg); err != nil {
+			fmt.Printf("error: sendMessage %s. %+v\n", msg, err)
+		}
 	}
 
 	return nil
