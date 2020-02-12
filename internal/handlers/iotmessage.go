@@ -37,7 +37,6 @@ func SetIoTMessageTableName(name string) {
 func IoTMessage(event events.DynamoDBEvent) error {
 	msg := sensorOff
 	doSendMessage := false
-EXISTS:
 	for _, r := range event.Records {
 		fmt.Printf("eventID: %s, eventName: %s, eventSourceARN: %s\n",
 			r.EventID,
@@ -60,10 +59,9 @@ EXISTS:
 			if v, ok := item[sensorKey]; ok {
 				sensor := v.Map()
 				fmt.Printf("sensor: %+v\n", sensor["sensor"].String())
-				if sensor["sensor"].String() == sensorOn {
+				if msg != sensorOn && sensor["sensor"].String() == sensorOn {
 					fmt.Print("Detected sensor.\n")
 					msg = sensorOn
-					break EXISTS
 				}
 			}
 		default:
