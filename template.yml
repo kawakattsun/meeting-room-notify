@@ -230,12 +230,12 @@ Resources:
           Properties:
             Stream: !GetAtt IoTMessageTable.StreamArn
             StartingPosition: LATEST
-            BatchSize: 60
-            MaximumBatchingWindowInSeconds: 30
+            BatchSize: 30
+            MaximumBatchingWindowInSeconds: 15
             Enabled: true
             MaximumRetryAttempts: 0
             BisectBatchOnFunctionError: false
-            MaximumRecordAgeInSeconds: 60
+            MaximumRecordAgeInSeconds: 30
       Policies:
       - CloudFormationDescribeStacksPolicy: {}
       - DynamoDBCrudPolicy:
