@@ -5,6 +5,7 @@ vendor
 main
 
 samconfig.toml
+samconfig.*.toml
 
 build/cmd/*
 

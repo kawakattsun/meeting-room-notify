@@ -1,4 +1,4 @@
-AWSTemplateFormatVersion: '2010-09-09'
+AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   meeting-room-notify
@@ -17,12 +17,12 @@ Parameters:
     Default: dev
   ConnectionTableName:
     Type: String
-    Default: 'connections'
+    Default: "connections"
     Description: (Required) The name of the new DynamoDB to store connection identifiers for each connected clients. Minimum 3 characters
     MinLength: 3
     MaxLength: 50
     AllowedPattern: ^[A-Za-z_]+$
-    ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+    ConstraintDescription: "Required. Can be characters and underscore only. No numbers or special characters allowed."
 
 Globals:
   Function:
@@ -51,8 +51,8 @@ Resources:
       AuthorizationType: NONE
       OperationName: ConnectRoute
       Target: !Join
-        - '/'
-        - - 'integrations'
+        - "/"
+        - - "integrations"
           - !Ref ConnectInteg
   ConnectInteg:
     Type: AWS::ApiGatewayV2::Integration
@@ -60,9 +60,8 @@ Resources:
       ApiId: !Ref WebSocketApiGateway
       Description: Connect Integration
       IntegrationType: AWS_PROXY
-      IntegrationUri: 
-        Fn::Sub:
-            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnConnectFunction.Arn}/invocations
+      IntegrationUri:
+        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnConnectFunction.Arn}/invocations
   DisconnectRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -71,8 +70,8 @@ Resources:
       AuthorizationType: NONE
       OperationName: DisconnectRoute
       Target: !Join
-        - '/'
-        - - 'integrations'
+        - "/"
+        - - "integrations"
           - !Ref DisconnectInteg
   DisconnectInteg:
     Type: AWS::ApiGatewayV2::Integration
@@ -80,9 +79,8 @@ Resources:
       ApiId: !Ref WebSocketApiGateway
       Description: Disconnect Integration
       IntegrationType: AWS_PROXY
-      IntegrationUri: 
-        Fn::Sub:
-            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnDisconnectFunction.Arn}/invocations
+      IntegrationUri:
+        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnDisconnectFunction.Arn}/invocations
   SendRoute:
     Type: AWS::ApiGatewayV2::Route
     Properties:
@@ -91,8 +89,8 @@ Resources:
       AuthorizationType: NONE
       OperationName: SendRoute
       Target: !Join
-        - '/'
-        - - 'integrations'
+        - "/"
+        - - "integrations"
           - !Ref SendInteg
   SendInteg:
     Type: AWS::ApiGatewayV2::Integration
@@ -100,15 +98,14 @@ Resources:
       ApiId: !Ref WebSocketApiGateway
       Description: Send Integration
       IntegrationType: AWS_PROXY
-      IntegrationUri: 
-        Fn::Sub:
-            arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendMessageFunction.Arn}/invocations
+      IntegrationUri:
+        Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SendMessageFunction.Arn}/invocations
   Deployment:
     Type: AWS::ApiGatewayV2::Deployment
     DependsOn:
-    - ConnectRoute
-    - SendRoute
-    - DisconnectRoute
+      - ConnectRoute
+      - SendRoute
+      - DisconnectRoute
     Properties:
       ApiId: !Ref WebSocketApiGateway
   Stage:
@@ -124,11 +121,11 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       AttributeDefinitions:
-      - AttributeName: "connectionId"
-        AttributeType: "S"
+        - AttributeName: "connectionId"
+          AttributeType: "S"
       KeySchema:
-      - AttributeName: "connectionId"
-        KeyType: "HASH"
+        - AttributeName: "connectionId"
+          KeyType: "HASH"
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
@@ -145,8 +142,8 @@ Resources:
         Variables:
           CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
       Policies:
-      - DynamoDBCrudPolicy:
-          TableName: !Sub ${ProjectName}-${ConnectionTableName}
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${ProjectName}-${ConnectionTableName}
   OnConnectPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -165,8 +162,8 @@ Resources:
         Variables:
           CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
       Policies:
-      - DynamoDBCrudPolicy:
-          TableName: !Sub ${ProjectName}-${ConnectionTableName}
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${ProjectName}-${ConnectionTableName}
   OnDisconnectPermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -185,14 +182,14 @@ Resources:
         Variables:
           CONNECTION_TABLE_NAME: !Sub ${ProjectName}-${ConnectionTableName}
       Policies:
-      - DynamoDBCrudPolicy:
-          TableName: !Sub ${ProjectName}-${ConnectionTableName}
-      - Statement:
-        - Effect: Allow
-          Action:
-          - 'execute-api:ManageConnections'
-          Resource:
-          - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiGateway}/*'
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${ProjectName}-${ConnectionTableName}
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "execute-api:ManageConnections"
+              Resource:
+                - !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiGateway}/*"
   SendMessagePermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -231,25 +228,25 @@ Resources:
             Stream: !GetAtt IoTMessageTable.StreamArn
             StartingPosition: LATEST
             BatchSize: 120
-            MaximumBatchingWindowInSeconds: 15
+            MaximumBatchingWindowInSeconds: 5
             Enabled: true
             MaximumRetryAttempts: 0
             BisectBatchOnFunctionError: false
             MaximumRecordAgeInSeconds: 60
       Policies:
-      - CloudFormationDescribeStacksPolicy: {}
-      - DynamoDBCrudPolicy:
-          TableName: !Sub ${ProjectName}-${ConnectionTableName}
-      - DynamoDBCrudPolicy:
-          TableName: !Sub ${ProjectName}-iot-message
-      # - KinesisStreamReadPolicy:
-      #     StreamName: !GetAtt IoTKinesisStream.Arn
-      - Statement:
-        - Effect: Allow
-          Action:
-          - 'execute-api:ManageConnections'
-          Resource:
-          - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiGateway}/*'
+        - CloudFormationDescribeStacksPolicy: {}
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${ProjectName}-${ConnectionTableName}
+        - DynamoDBCrudPolicy:
+            TableName: !Sub ${ProjectName}-iot-message
+        # - KinesisStreamReadPolicy:
+        #     StreamName: !GetAtt IoTKinesisStream.Arn
+        - Statement:
+            - Effect: Allow
+              Action:
+                - "execute-api:ManageConnections"
+              Resource:
+                - !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApiGateway}/*"
   IoTMessagePermission:
     Type: AWS::Lambda::Permission
     DependsOn:
@@ -269,16 +266,16 @@ Resources:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: !Sub ${ProjectName}-iot-message
-      AttributeDefinitions: 
-      - AttributeName: detected_at
-        AttributeType: S
+      AttributeDefinitions:
+        - AttributeName: detected_at
+          AttributeType: S
       KeySchema:
-      - AttributeName: detected_at
-        KeyType: HASH
+        - AttributeName: detected_at
+          KeyType: HASH
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
-      StreamSpecification: 
+      StreamSpecification:
         StreamViewType: NEW_IMAGE
 
 Outputs:
@@ -308,8 +305,18 @@ Outputs:
 
   WebSocketURI:
     Description: "The WSS Protocol URI to connect to"
-    Value: !Join ['', ['https://', !Ref WebSocketApiGateway, '.execute-api.', !Ref 'AWS::Region', '.amazonaws.com/', !Ref 'Stage']]
-
+    Value:
+      !Join [
+        "",
+        [
+          "https://",
+          !Ref WebSocketApiGateway,
+          ".execute-api.",
+          !Ref "AWS::Region",
+          ".amazonaws.com/",
+          !Ref "Stage",
+        ],
+      ]
   # IoTKinesisStreamArn:
   #   Description: "IoT KinesisStream ARN"
   #   Value: !GetAtt IoTKinesisStream.Arn
